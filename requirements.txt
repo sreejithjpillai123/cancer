@@ -46,7 +46,7 @@ scipy==1.15.0
 six==1.17.0
 soupsieve==2.6
 sqlparse==0.5.3
-tensorboard==2.18.0
+tensorboard==2.12.3
 tensorboard-data-server==0.7.2
 tensorflow-io-gcs-filesystem==0.31.0
 termcolor==2.5.0
