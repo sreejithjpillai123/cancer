@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+</head>
+<body>
+    <h1>Prediction Result</h1>
+    <p>Predicted Class: <strong>{{ prediction }}</strong></p>
+
+    {% if image_filename %}
+        <h2>Uploaded Image:</h2>
+        <img src="{{ url_for('uploaded_file', filename=image_filename) }}" alt="Uploaded Image" style="max-width: 500px;"><br><br>
+    {% endif %}
+
+    {% if overlay_filename %}
+        <h2>Segmented Image (Overlay):</h2>
+        <img src="{{ url_for('uploaded_file', filename=overlay_filename) }}" alt="Segmented Overlay" style="max-width: 500px;"><br><br>
+    {% endif %}
+
+    {% if mask_filename %}
+        <h2>Segmented Image (Mask):</h2>
+        <img src="{{ url_for('uploaded_file', filename=mask_filename) }}" alt="Segmented Mask" style="max-width: 500px;"><br><br>
+    {% endif %}
+
+    <a href="/">Make another prediction</a>
+</body>
+</html>
