@@ -63,9 +63,9 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
 # Load Models
-numerical_model = tf.keras.models.load_model("breast_cancer_model.h5")
-image_classification_model = tf.keras.models.load_model("segmentation_model_classification.h5")
-segmentation_model = tf.keras.models.load_model("segmentation_model.h5")
+numerical_model = tf.keras.models.load_model("models/breast_cancer_model.h5")
+image_classification_model = tf.keras.models.load_model("models/segmentation_model_classification.h5")
+segmentation_model = tf.keras.models.load_model("models/segmentation_model.h5")
 
 # Load Dataset for Scaling Numerical Features
 data = pd.read_csv("dataset_folder/data.csv")
