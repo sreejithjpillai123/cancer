@@ -5,14 +5,17 @@ import numpy as np
 import cv2
 import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
-import pandas as pd
+import zipfile
 
-# Function to download models from individual links
+# Initialize scaler (ensure this is trained on your data before use)
+scaler = StandardScaler()
+
+# Function to download models from Google Drive links
 def download_models():
     model_links = {
-        "breast_cancer_model.h5": "https://drive.google.com/uc?export=download&id=FILE_ID_FOR_BREAST_CANCER_MODEL",
-        "segmentation_model_classification.h5": "https://drive.google.com/uc?export=download&id=FILE_ID_FOR_CLASSIFICATION_MODEL",
-        "segmentation_model.h5": "https://drive.google.com/uc?export=download&id=FILE_ID_FOR_SEGMENTATION_MODEL",
+        "breast_cancer_model.h5": "https://drive.google.com/uc?export=download&id=YOUR_BREAST_CANCER_MODEL_ID",
+        "segmentation_model_classification.h5": "https://drive.google.com/uc?export=download&id=YOUR_CLASSIFICATION_MODEL_ID",
+        "segmentation_model.h5": "https://drive.google.com/uc?export=download&id=YOUR_SEGMENTATION_MODEL_ID",
     }
     model_folder = "models"
     os.makedirs(model_folder, exist_ok=True)
@@ -20,13 +23,45 @@ def download_models():
     for filename, link in model_links.items():
         file_path = os.path.join(model_folder, filename)
         if not os.path.exists(file_path):
-            print(f"Downloading {filename}...")
-            gdown.download(link, file_path, quiet=False)
+            print(f"Downloading {filename} from Google Drive...")
+            try:
+                gdown.download(link, file_path, quiet=False)
+                print(f"{filename} downloaded successfully.")
+            except Exception as e:
+                print(f"Failed to download {filename}: {e}")
         else:
             print(f"{filename} already exists.")
 
-# Call the function to download models
+# Function to download and prepare the dataset
+def download_dataset():
+    dataset_url = 'https://drive.google.com/uc?export=download&id=1CDlprA0zbj9wXTRuG2Z0PdnQrhwjgtrY'
+    dataset_zip = 'dataset.zip'
+    dataset_folder = 'dataset_folder'
+
+    os.makedirs(dataset_folder, exist_ok=True)
+
+    if not os.path.exists(dataset_zip):
+        print("Downloading dataset from Google Drive...")
+        try:
+            gdown.download(dataset_url, dataset_zip, quiet=False)
+            print("Dataset downloaded successfully.")
+        except Exception as e:
+            print(f"Failed to download dataset: {e}")
+    else:
+        print("Dataset already exists.")
+
+    # Extract dataset if it's a zip file
+    if os.path.exists(dataset_zip):
+        try:
+            with zipfile.ZipFile(dataset_zip, 'r') as zip_ref:
+                zip_ref.extractall(dataset_folder)
+                print("Dataset extracted successfully.")
+        except Exception as e:
+            print(f"Failed to extract dataset: {e}")
+
+# Download the models and dataset before running the app
 download_models()
+download_dataset()
 
 # Flask app setup
 app = Flask(__name__)
@@ -36,7 +71,7 @@ app.secret_key = 'supersecretkey'
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-# Load Models with Exception Handling
+# Load models with exception handling
 try:
     numerical_model = tf.keras.models.load_model("models/breast_cancer_model.h5")
     print("Numerical model loaded successfully.")
@@ -58,7 +93,7 @@ except Exception as e:
     segmentation_model = None
     print(f"Error loading segmentation model: {e}")
 
-# Process and classification functions remain the same
+# Helper functions
 def process_image(image_path, img_size=128):
     """Preprocess an image for prediction."""
     image = cv2.imread(image_path)
@@ -103,6 +138,7 @@ def classify_features(features):
     class_names = ["Benign", "Malignant"]
     return class_names[predicted_class[0][0]]
 
+# Flask routes
 @app.route('/')
 def index():
     return render_template('index_combined.html')
