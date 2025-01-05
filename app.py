@@ -13,9 +13,9 @@ scaler = StandardScaler()
 # Function to download models from Google Drive links
 def download_models():
     model_links = {
-        "breast_cancer_model.h5": "https://drive.google.com/uc?export=download&id=YOUR_BREAST_CANCER_MODEL_ID",
-        "segmentation_model_classification.h5": "https://drive.google.com/uc?export=download&id=YOUR_CLASSIFICATION_MODEL_ID",
-        "segmentation_model.h5": "https://drive.google.com/uc?export=download&id=YOUR_SEGMENTATION_MODEL_ID",
+        "breast_cancer_model.h5": "https://drive.google.com/file/d/1NIPCd6eAF_QkpZT0ahcKhcNvtE7lhRta/view?usp=sharing",
+        "segmentation_model_classification.h5": "https://drive.google.com/file/d/1gVcAU_UUeB1DVbuX4Iet_DhGjV9xYWWQ/view?usp=sharing",
+        "segmentation_model.h5": "https://drive.google.com/file/d/1bXT3r31aFycM4-HPPvG330nUZxYxRCll/view?usp=sharing",
     }
     model_folder = "models"
     os.makedirs(model_folder, exist_ok=True)
