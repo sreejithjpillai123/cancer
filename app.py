@@ -7,41 +7,26 @@ import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
-# Function to download and prepare datasets/models
-def download_and_prepare():
-    dataset_url = 'https://drive.google.com/uc?export=download&id=1CDlprA0zbj9wXTRuG2Z0PdnQrhwjgtrY'
+# Function to download models from individual links
+def download_models():
+    model_links = {
+        "breast_cancer_model.h5": "https://drive.google.com/uc?export=download&id=FILE_ID_FOR_BREAST_CANCER_MODEL",
+        "segmentation_model_classification.h5": "https://drive.google.com/uc?export=download&id=FILE_ID_FOR_CLASSIFICATION_MODEL",
+        "segmentation_model.h5": "https://drive.google.com/uc?export=download&id=FILE_ID_FOR_SEGMENTATION_MODEL",
+    }
+    model_folder = "models"
+    os.makedirs(model_folder, exist_ok=True)
 
-    dataset_zip = 'dataset.zip'
-    dataset_folder = 'dataset_folder'
-    model_folder = 'models'
+    for filename, link in model_links.items():
+        file_path = os.path.join(model_folder, filename)
+        if not os.path.exists(file_path):
+            print(f"Downloading {filename}...")
+            gdown.download(link, file_path, quiet=False)
+        else:
+            print(f"{filename} already exists.")
 
-    # Download the dataset ZIP file
-    if not os.path.exists(dataset_zip):
-        print("Downloading dataset ZIP file...")
-        gdown.download(dataset_url, dataset_zip, quiet=False)
-
-    # Extract the dataset if not already done
-    if not os.path.exists(dataset_folder):
-        print("Extracting dataset ZIP file...")
-        import zipfile
-        with zipfile.ZipFile(dataset_zip, 'r') as zip_ref:
-            zip_ref.extractall(dataset_folder)
-        print(f"Dataset extracted to {dataset_folder}")
-
-    # Clean up the dataset ZIP file
-    if os.path.exists(dataset_zip):
-        os.remove(dataset_zip)
-
-    # Ensure the model folder exists
-    if not os.path.exists(model_folder):
-        print(f"Error: Model folder '{model_folder}' does not exist.")
-        return False
-    return True
-
-# Prepare datasets and models
-if not download_and_prepare():
-    print("Error: Required resources are missing.")
-    exit(1)
+# Call the function to download models
+download_models()
 
 # Flask app setup
 app = Flask(__name__)
@@ -73,18 +58,7 @@ except Exception as e:
     segmentation_model = None
     print(f"Error loading segmentation model: {e}")
 
-# Load Dataset for Scaling Numerical Features
-data_file = "dataset_folder/data.csv"
-if os.path.exists(data_file):
-    data = pd.read_csv(data_file)
-    data_cleaned = data.drop(columns=['id', 'Unnamed: 32'])
-    X = data_cleaned.drop(columns=['diagnosis'])
-    scaler = StandardScaler()
-    scaler.fit(X)
-else:
-    print("Dataset CSV file not found.")
-    scaler = None
-
+# Process and classification functions remain the same
 def process_image(image_path, img_size=128):
     """Preprocess an image for prediction."""
     image = cv2.imread(image_path)
@@ -121,8 +95,8 @@ def classify_image(image_path):
 
 def classify_features(features):
     """Classify using numerical features."""
-    if numerical_model is None or scaler is None:
-        raise ValueError("Numerical model or scaler is not loaded.")
+    if numerical_model is None:
+        raise ValueError("Numerical model is not loaded.")
     features_scaled = scaler.transform([features])
     predictions = numerical_model.predict(features_scaled)
     predicted_class = (predictions > 0.5).astype(int)
@@ -156,8 +130,6 @@ def predict():
         raw_input = request.form['features']
         try:
             features = [float(value.strip()) for value in raw_input.split(",")]
-            if len(features) != X.shape[1]:
-                return "Error: Provide 30 feature values separated by commas."
             predicted_class = classify_features(features)
             return render_template(
                 'result_combined.html',
@@ -169,7 +141,7 @@ def predict():
         except Exception as e:
             return f"Error processing values: {e}"
     else:
-        return "Error: No input provided. Please upload an image file or enter 30 comma-separated feature values."
+        return "Error: No input provided. Please upload an image file or enter feature values."
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
