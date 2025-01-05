@@ -1,6 +1,5 @@
 import os
 import gdown
-import zipfile
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 import numpy as np
 import cv2
@@ -8,43 +7,41 @@ import tensorflow as tf
 from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
-# Function to download and extract datasets/models from Google Drive
-def download_and_extract():
+# Function to download and prepare datasets/models
+def download_and_prepare():
     dataset_url = 'https://drive.google.com/uc?export=download&id=1CDlprA0zbj9wXTRuG2Z0PdnQrhwjgtrY'
-    model_url = 'https://drive.google.com/uc?export=download&id=1Kk2FMy7Enj6zjK66RnPDryRjBiVHUC5x'
 
     dataset_zip = 'dataset.zip'
-    model_zip = 'models.zip'
     dataset_folder = 'dataset_folder'
     model_folder = 'models'
 
+    # Download the dataset ZIP file
     if not os.path.exists(dataset_zip):
         print("Downloading dataset ZIP file...")
         gdown.download(dataset_url, dataset_zip, quiet=False)
 
-    if not os.path.exists(model_zip):
-        print("Downloading models ZIP file...")
-        gdown.download(model_url, model_zip, quiet=False)
-
+    # Extract the dataset if not already done
     if not os.path.exists(dataset_folder):
         print("Extracting dataset ZIP file...")
+        import zipfile
         with zipfile.ZipFile(dataset_zip, 'r') as zip_ref:
             zip_ref.extractall(dataset_folder)
         print(f"Dataset extracted to {dataset_folder}")
 
-    if not os.path.exists(model_folder):
-        print("Extracting models ZIP file...")
-        with zipfile.ZipFile(model_zip, 'r') as zip_ref:
-            zip_ref.extractall(model_folder)
-        print(f"Models extracted to {model_folder}")
-
+    # Clean up the dataset ZIP file
     if os.path.exists(dataset_zip):
         os.remove(dataset_zip)
-    if os.path.exists(model_zip):
-        os.remove(model_zip)
 
-# Call the function to download and extract datasets/models
-download_and_extract()
+    # Ensure the model folder exists
+    if not os.path.exists(model_folder):
+        print(f"Error: Model folder '{model_folder}' does not exist.")
+        return False
+    return True
+
+# Prepare datasets and models
+if not download_and_prepare():
+    print("Error: Required resources are missing.")
+    exit(1)
 
 # Flask app setup
 app = Flask(__name__)
